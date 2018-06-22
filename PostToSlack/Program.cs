@@ -1,21 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
-using System.Runtime.Serialization;
 using System.Net.Http;
+using System.Runtime.Remoting.Messaging;
 using System.Runtime.Serialization.Json;
 
 namespace PostToSlack
 {
-	class Program
+	partial class Program
 	{
-		static void Main(string[] args)
+		private static void Main(string[] args)
 		{
-			PostToSlack();
+		//	PostToSlack();
+			var listener = Listen();
+			Console.WriteLine(listener);
+			var messageDict = new MessageSplitter(listener);
+			foreach (var pair in messageDict.MessageDictionary)
+			{
+				Console.WriteLine(pair);
+			}
+
 
 			Console.ReadKey();
 		}
@@ -38,11 +44,47 @@ namespace PostToSlack
 			Console.WriteLine(httpResponse.StatusCode);
 		}
 
-		[DataContract]
-		class SlackMessage
+		private static string Listen()
 		{
-			[DataMember]
-			internal string Text;
+			const string boundUrl = "http://*:8181/";
+			
+
+			
+			using (var listener = new HttpListener())
+			{
+				listener.Prefixes.Add(boundUrl);
+				var prefixes = listener.Prefixes;
+				foreach (var prefix in prefixes)
+				{
+					Console.WriteLine("The prefix(es) are :" + prefix.ToString());
+				}
+
+				listener.AuthenticationSchemes = AuthenticationSchemes.Anonymous;
+				listener.Start();
+				if (listener.IsListening)
+					Console.WriteLine("Listening...");
+
+				HttpListenerContext context =  listener.GetContext();
+				
+				HttpListenerRequest request = context.Request;
+				if (request != null)
+					Console.WriteLine("Got a request");
+				else
+					new ArgumentNullException();
+
+				context.Response.StatusCode = 200;
+
+				var reader = new MessageReader(request.InputStream);
+				reader.ReadMessage();
+				
+						
+
+				context.Response.Close();
+				listener.Stop();
+				return reader.GetReadMessage();
+			}
+
+			
 		}
 	}
 }
