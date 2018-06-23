@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using System.Runtime.Remoting.Messaging;
 using System.Runtime.Serialization.Json;
+using System.Security.Cryptography.X509Certificates;
 
 namespace PostToSlack
 {
@@ -13,14 +14,19 @@ namespace PostToSlack
 	{
 		private static void Main(string[] args)
 		{
-		//	PostToSlack();
+			//	PostToSlack();
 			var listener = Listen();
 			Console.WriteLine(listener);
-			var messageDict = new MessageSplitter(listener);
+			var messageDict = new PostBodyDictBuilder(listener);
 			foreach (var pair in messageDict.MessageDictionary)
 			{
 				Console.WriteLine(pair);
 			}
+			var user = new OooUser(messageDict.MessageDictionary["user_id"]);
+
+		    user.SetUsername(messageDict.MessageDictionary["user_name"]);
+			Console.WriteLine();
+			Console.WriteLine("{0}'s OOO status is : {1}", user.GetUsername(), user.GetStatus());
 
 
 			Console.ReadKey();
@@ -52,14 +58,10 @@ namespace PostToSlack
 			
 			using (var listener = new HttpListener())
 			{
-				listener.Prefixes.Add(boundUrl);
-				var prefixes = listener.Prefixes;
-				foreach (var prefix in prefixes)
-				{
-					Console.WriteLine("The prefix(es) are :" + prefix.ToString());
-				}
 
-				listener.AuthenticationSchemes = AuthenticationSchemes.Anonymous;
+				SetHttpListenerOptions(listener, boundUrl);
+
+
 				listener.Start();
 				if (listener.IsListening)
 					Console.WriteLine("Listening...");
@@ -85,6 +87,21 @@ namespace PostToSlack
 			}
 
 			
+			
+		}
+
+		public static void SetHttpListenerOptions(HttpListener listener, string bindingUrl)
+		{
+			listener.Prefixes.Add(bindingUrl);
+			listener.AuthenticationSchemes = AuthenticationSchemes.Anonymous;
+		}
+		public static void SetHttpListenerOptions(HttpListener listener, string[] bindingUrl)
+		{
+			foreach (var url in bindingUrl)
+			{
+				listener.Prefixes.Add(url);
+			}
+			listener.AuthenticationSchemes = AuthenticationSchemes.Anonymous;
 		}
 	}
 }

@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace PostToSlack
 {
@@ -11,5 +12,26 @@ namespace PostToSlack
 		{
 			_userId = userId;
 		}
+
+		public void SetUsername(string username)
+		{
+			_username = username;
+			if (string.IsNullOrWhiteSpace(_username))
+			{
+				//try and pull down username from slack by userID
+				throw new NotImplementedException();
+			}
+		}
+
+		public string GetUsername()
+		{
+			return _username;
+		}
+
+		public virtual bool GetStatus()
+		{
+			return false; //not ooo
+		}
+
 	}
 }

@@ -7,6 +7,9 @@
 
 		}
 
-
+		public override bool GetStatus()
+		{
+			return true; //user is OOO
+		}
 	}
 }
