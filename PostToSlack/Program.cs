@@ -79,7 +79,7 @@ namespace PostToSlack
 			return response;
 		}
 
-		private static async Task<string> PostToSlack(HttpClient client, List<User> userList)
+		private static async Task<string> PostToSlack(HttpClient client, IReadOnlyCollection<User> userList)
 		{
 			var url = new Uri("https://hooks.slack.com/services/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");
 			var builder = new StringBuilder();
@@ -154,7 +154,7 @@ namespace PostToSlack
 			var user = new OooUser(messageDict.MessageDictionary["user_id"]);
 			user.SetUsername(messageDict.MessageDictionary["user_name"]);
 
-			scheduledMessage.ScheduledUsers.Add(user);
+			scheduledMessage.AddScheduledUser(user);
 		}
 
 

@@ -6,14 +6,21 @@ namespace PostToSlack
 	public class ScheduledMessage
 	{
 		public readonly int Schedule;
-		public List<User> ScheduledUsers;
 		private readonly DateTime _startTime;
+		private List<User> _scheduledUsers;
+		public IReadOnlyCollection<User> ScheduledUsers => _scheduledUsers.AsReadOnly();
 
 		public ScheduledMessage(int scheduleInMins)
 		{
 			Schedule = scheduleInMins;
 			_startTime = DateTime.Now;
-			ScheduledUsers = new List<User>();
+			_scheduledUsers = new List<User>();
+		}
+
+		public void AddScheduledUser(User user)
+		{
+			if (!_scheduledUsers.Contains(user))
+			_scheduledUsers.Add(user);
 		}
 
 		public bool ScheduleChecker()
