@@ -35,19 +35,20 @@ namespace PostToSlack
 					ElapsedEventHandler handler = null;
 					//var userList = new List<User>();
 					//var scheduledMessage = new ScheduledMessage(5);
+					
+					timer.Elapsed += handler = delegate(object o, ElapsedEventArgs e)
+					{
+						if (ScheduledMessage.ScheduleChecker())
+						{
+							var postToSlack = PostToSlack(client, ScheduledMessage.ScheduledUsers);
+							Console.WriteLine(postToSlack.Result);
+						}
+
+					};
+					
 					while (true)
 					{
 						IAsyncResult rawResult = listener.BeginGetContext(ListenerCallback, listener);
-					
-						timer.Elapsed += handler = delegate(object o, ElapsedEventArgs e)
-						{
-							if (ScheduledMessage.ScheduleChecker())
-							{
-								var postToSlack = PostToSlack(client, ScheduledMessage.ScheduledUsers);
-								Console.WriteLine(postToSlack.Result);
-							}
-
-						};
 					}
 				}
 
