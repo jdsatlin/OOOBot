@@ -7,7 +7,7 @@ namespace PostToSlack
 	{
 		public readonly int Schedule;
 		private readonly DateTime _startTime;
-		private List<User> _scheduledUsers;
+		private readonly List<User> _scheduledUsers;
 		public IReadOnlyCollection<User> ScheduledUsers => _scheduledUsers.AsReadOnly();
 
 		public ScheduledMessage(int scheduleInMins)
@@ -19,8 +19,16 @@ namespace PostToSlack
 
 		public void AddScheduledUser(User user)
 		{
+			if (!user.GetStatus())
+				throw new InvalidOperationException("Cannot add non-OOO user to the scheduled message");
 			if (!_scheduledUsers.Contains(user))
 			_scheduledUsers.Add(user);
+			else
+			{
+				var userMatch = _scheduledUsers.Find(u => u.GetUsername() == user.GetUsername());
+					_scheduledUsers.Remove(userMatch);
+					_scheduledUsers.Add(user);
+			}
 		}
 
 		public bool ScheduleChecker()
