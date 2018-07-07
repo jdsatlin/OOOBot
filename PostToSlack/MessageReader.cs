@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.IO;
 using System.Text;
 
@@ -9,7 +10,17 @@ namespace PostToSlack
 		public class MessageReader
 		{
 			private readonly Stream _message;
-			public string Body;
+			private string _body;
+			public string Body
+			{
+				get => _body;
+				private set
+				{
+					if (String.IsNullOrWhiteSpace(value))
+						throw new ArgumentNullException();
+					_body = value;
+				}
+			}
 
 			public MessageReader(Stream message)
 			{
@@ -28,23 +39,18 @@ namespace PostToSlack
 					}
 
 					Body = bodyBuilder.ToString();
+					
+
+
 
 				}
 			}
 
-			public string GetReadMessage()
+			private void ValidateBody(string body)
 			{
-				if (Body == null)
-				{
-					new InvalidOperationException("Message must be read before it can be returned");
-					Body = "body was empty";
-				}
-
-				return Body;
-
-
+				if (string.IsNullOrWhiteSpace(Body))
+					throw new ArgumentNullException();
 			}
-
 		}
 	}
 }
