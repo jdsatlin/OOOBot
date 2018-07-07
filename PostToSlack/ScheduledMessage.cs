@@ -20,6 +20,8 @@ namespace PostToSlack
 		{
 			if (_startTime > DateTime.Now || Schedule <= 0 )
 				throw new InvalidOperationException();
+			if (ScheduledUsers.Count == 0)
+				return false;
 			var span = DateTime.Now - _startTime;
 			return span.Minutes % Schedule == 0;
 

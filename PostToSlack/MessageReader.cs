@@ -39,10 +39,6 @@ namespace PostToSlack
 					}
 
 					Body = bodyBuilder.ToString();
-					
-
-
-
 				}
 			}
 

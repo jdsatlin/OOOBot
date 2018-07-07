@@ -32,24 +32,23 @@ namespace PostToSlack
 					listener.Start();
 					var timer = new Timer(60 * 1000);
 					timer.Start();
-					ElapsedEventHandler handler = null;
 					//var userList = new List<User>();
 					//var scheduledMessage = new ScheduledMessage(5);
-					
-					timer.Elapsed += handler = delegate(object o, ElapsedEventArgs e)
+
+					timer.Elapsed += delegate (object o, ElapsedEventArgs e)
 					{
+						Console.WriteLine("sched checker is: " + ScheduledMessage.ScheduleChecker());
 						if (ScheduledMessage.ScheduleChecker())
 						{
+
 							var postToSlack = PostToSlack(client, ScheduledMessage.ScheduledUsers);
 							Console.WriteLine(postToSlack.Result);
 						}
 
 					};
-					
-					while (true)
-					{
+
 						IAsyncResult rawResult = listener.BeginGetContext(ListenerCallback, listener);
-					}
+					Console.ReadLine();
 				}
 
 			}
@@ -141,6 +140,8 @@ namespace PostToSlack
 			reader.ReadMessage(); 
 			BuildandAddUsers(reader.Body, ScheduledMessage);
 			response.Close();
+
+			var nextIteration = listener.BeginGetContext(ListenerCallback, listener);
 
 
 		}
