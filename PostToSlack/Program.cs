@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -10,44 +11,44 @@ using System.Threading.Tasks;
 using System.Timers;
 using System.Web.Script.Serialization;
 using System.Web.UI;
+using System.Web.UI.WebControls;
 using Timer = System.Timers.Timer;
 
 namespace PostToSlack
 {
 	internal partial class Program
 	{
-		private static readonly ScheduledMessage ScheduledMessage = new ScheduledMessage(1);
 
 		private static void Main(string[] args)
 		{
-			const string boundUrl = "http://*:8181/";
-			
-		
+			Options.ReadOptionsFromFile();
+			Options.ApplyOptions();
+			var listenerBehavior = new ListenerBehavior();
+			listenerBehavior.CurrentMessage = new ScheduledMessage(Options.PostingTime);
+
 
 			using (var client = new HttpClient())
 			{
 				using (var listener = new HttpListener())
 				{
-					SetHttpListenerOptions(listener, boundUrl);
+					ListenerBehavior.SetHttpListenerOptions(listener, Options.GetBinding());
 					listener.Start();
 					var timer = new Timer(60 * 1000);
 					timer.Start();
-					//var userList = new List<User>();
-					//var scheduledMessage = new ScheduledMessage(5);
 
 					timer.Elapsed += delegate (object o, ElapsedEventArgs e)
 					{
-						Console.WriteLine("sched checker is: " + ScheduledMessage.ScheduleChecker());
-						if (ScheduledMessage.ScheduleChecker())
+						if (listenerBehavior.CurrentMessage.IsReadyToPost)
 						{
-
-							var postToSlack = PostToSlack(client, ScheduledMessage.ScheduledUsers);
-							Console.WriteLine(postToSlack.Result);
+							var poster = new PostToSlack(client);
+							var post = poster.Post(listenerBehavior.CurrentMessage.Message);
+							Console.WriteLine(post.Result);
+							listenerBehavior.CurrentMessage.PostCompleted();
 						}
 
 					};
 
-						IAsyncResult rawResult = listener.BeginGetContext(ListenerCallback, listener);
+						IAsyncResult rawResult = listener.BeginGetContext(listenerBehavior.ListenerCallback, listener);
 					Console.ReadLine();
 				}
 
@@ -55,51 +56,6 @@ namespace PostToSlack
 
 		}
 
-		//private static void CheckTimer()
-		//{
-		//	if (ScheduledMessage.ScheduleChecker() && ScheduledMessage.ScheduledUsers.Count > 0)
-		//	{
-		//		var postToSlack = PostToSlack(client, ScheduledMessage.ScheduledUsers);
-		//		Console.WriteLine(postToSlack.Result);
-		//	}
-		//}
-
-	
-
-		private static async Task<string> PostToSlack(HttpClient client, User user)
-		{
-			var url = new Uri("https://hooks.slack.com/services/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");
-			var slackMessage = new { text = $"{user.GetUsername()} is {(user.GetStatus() ? "OOO" : "Not OOO")}"};
-			var ser = new JavaScriptSerializer();
-			var message = ser.Serialize(slackMessage);
-			Console.WriteLine(message);
-			var content = new StringContent(message, Encoding.UTF8, "application/json");
-			var result = await client.PostAsync(url, content);
-			var response = result.StatusCode.ToString();
-			return response;
-		}
-
-		private static async Task<string> PostToSlack(HttpClient client, IReadOnlyCollection<User> userList)
-		{
-			var url = new Uri("https://hooks.slack.com/services/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");
-			var builder = new StringBuilder();
-			foreach (var user in userList)
-			{
-				builder.AppendLine($"{user.GetUsername()} is {(user.GetStatus() ? "OOO" : "Not OOO")}");
-			}
-
-			var slackMessage = new { text = builder.ToString()};
-			Console.WriteLine("slackMessage is " + slackMessage);
-			var ser = new JavaScriptSerializer();
-			var message = ser.Serialize(slackMessage);
-			Console.WriteLine(message);
-			var content = new StringContent(message, Encoding.UTF8, "application/json");
-			var result = await client.PostAsync(url, content);
-			var response = result.StatusCode.ToString();
-			return response; 
-		}
-
-		
 
 		private static string Listen(HttpListener listener)
 		{
@@ -117,58 +73,13 @@ namespace PostToSlack
 
 				context.Response.StatusCode = 200;
 
-				var reader = new MessageReader(request.InputStream);
+				var reader = new Program.MessageReader(request.InputStream);
 				reader.ReadMessage();
 				
 
 				context.Response.Close();
 				return reader.Body;
 
-		}
-
-		public static void ListenerCallback(IAsyncResult result)
-		{
-			HttpListener listener = (HttpListener) result.AsyncState;
-			HttpListenerContext context = listener.EndGetContext(result);
-			HttpListenerRequest request = context.Request;
-
-			HttpListenerResponse response = context.Response;
-			response.StatusCode = 200;
-		
-
-			var reader = new MessageReader(request.InputStream);
-			reader.ReadMessage(); 
-			BuildandAddUsers(reader.Body, ScheduledMessage);
-			response.Close();
-
-			var nextIteration = listener.BeginGetContext(ListenerCallback, listener);
-
-
-		}
-
-		private static void BuildandAddUsers(string message, ScheduledMessage scheduledMessage)
-		{
-			var messageDict = new PostBodyDictBuilder(message);
-			foreach (var pair in messageDict.MessageDictionary) Console.WriteLine(pair);
-
-			var user = new OooUser(messageDict.MessageDictionary["user_id"]);
-			user.SetUsername(messageDict.MessageDictionary["user_name"]);
-
-			scheduledMessage.AddScheduledUser(user);
-		}
-
-
-
-		public static void SetHttpListenerOptions(HttpListener listener, string bindingUrl)
-		{
-			listener.Prefixes.Add(bindingUrl);
-			listener.AuthenticationSchemes = AuthenticationSchemes.Anonymous;
-		}
-
-		public static void SetHttpListenerOptions(HttpListener listener, string[] bindingUrl)
-		{
-			foreach (var url in bindingUrl) listener.Prefixes.Add(url);
-			listener.AuthenticationSchemes = AuthenticationSchemes.Anonymous;
 		}
 	}
 }
