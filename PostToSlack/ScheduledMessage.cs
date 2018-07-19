@@ -67,6 +67,11 @@ namespace PostToSlack
 		private ScheduledMessage()
 		{
 			_scheduledUsers = new List<User>();
+			var savedUsers = FlatFileStorage.LoadUsers();
+			if (savedUsers != null && savedUsers.Count > 0)
+			{
+				_scheduledUsers.AddRange(savedUsers);
+			}
 		}
 
 		public ScheduledMessage(DateTime messageTime)
@@ -86,7 +91,7 @@ namespace PostToSlack
 			var builder = new StringBuilder();
 			foreach (var user in ScheduledUsers)
 			{
-				builder.AppendLine($"{user.GetUsername()} is {(user.GetStatus() ? "OOO" : "Not OOO")}");
+				builder.AppendLine($"{user.GetUsername()} is {(user.GetOooStatus() ? "OOO" : "Not OOO")}");
 			}
 
 			var slackMessage = new { text = builder.ToString() };
@@ -141,7 +146,7 @@ namespace PostToSlack
 
 		public void AddScheduledUser(User user)
 		{
-			if (!user.GetStatus())
+			if (!user.GetOooStatus())
 				throw new InvalidOperationException("Cannot add non-OOO user to the scheduled message");
 			if (!_scheduledUsers.Contains(user))
 			_scheduledUsers.Add(user);
@@ -153,6 +158,14 @@ namespace PostToSlack
 			}
 
 		}
+
+		public void RemoveScheduledUser(User user)
+		{
+			if (!_scheduledUsers.Contains(user)) return;
+			Console.WriteLine("Marked user {0} back in office", user.GetUsername());
+			_scheduledUsers.Remove(user);
+		}
+
 		public void PostCompleted()
 		{
 			_isReadyToPost = false;

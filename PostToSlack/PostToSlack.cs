@@ -10,7 +10,7 @@ namespace PostToSlack
 {
 	internal class PostToSlack
 	{
-		private HttpClient _client;
+		private readonly HttpClient _client;
 
 		private PostToSlack()
 		{

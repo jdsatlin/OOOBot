@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -38,17 +39,16 @@ namespace PostToSlack
 
 					timer.Elapsed += delegate (object o, ElapsedEventArgs e)
 					{
-						if (listenerBehavior.CurrentMessage.IsReadyToPost)
-						{
-							var poster = new PostToSlack(client);
-							var post = poster.Post(listenerBehavior.CurrentMessage.Message);
-							Console.WriteLine(post.Result);
-							listenerBehavior.CurrentMessage.PostCompleted();
-						}
+						FlatFileStorage.SaveUsers(listenerBehavior.CurrentMessage.ScheduledUsers.ToList());
+						if (!listenerBehavior.CurrentMessage.IsReadyToPost) return;
+						var poster = new PostToSlack(client);
+						var post = poster.Post(listenerBehavior.CurrentMessage.Message);
+						Console.WriteLine(post.Result);
+						listenerBehavior.CurrentMessage.PostCompleted();
 
 					};
 
-						IAsyncResult rawResult = listener.BeginGetContext(listenerBehavior.ListenerCallback, listener);
+					IAsyncResult rawResult = listener.BeginGetContext(listenerBehavior.ListenerCallback, listener);
 					Console.ReadLine();
 				}
 

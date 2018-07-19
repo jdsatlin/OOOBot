@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FlatFileStorage.cs" />
     <Compile Include="ListenerBehavior.cs" />
     <Compile Include="MessageReader.cs" />
     <Compile Include="Options.cs" />

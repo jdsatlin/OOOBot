@@ -28,7 +28,7 @@ namespace PostToSlack
 			return _username;
 		}
 
-		public virtual bool GetStatus()
+		public virtual bool GetOooStatus()
 		{
 			return false; //not ooo
 		}
@@ -44,8 +44,7 @@ namespace PostToSlack
 		{
 			if (ReferenceEquals(null, obj)) return false;
 			if (ReferenceEquals(this, obj)) return true;
-			var other = obj as User;
-			return other != null && Equals(other);
+			return obj is User other && Equals(other);
 		}
 
 		public override int GetHashCode()

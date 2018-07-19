@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Runtime.Remoting.Messaging;
 
 namespace PostToSlack
 {
@@ -11,7 +11,7 @@ namespace PostToSlack
 		private static List<string> WebHookUrls;
 		public static string WebHookUrl;
 		public static DateTime PostingTime;
-		private static Dictionary<string, string> OptionsFromFile;
+		private static readonly Dictionary<string, string> OptionsFromFile;
 
 		static Options()
 		{
@@ -45,7 +45,7 @@ namespace PostToSlack
 				string line;
 				while ((line = reader.ReadLine()) != null)
 				{
-					var splitLine = line.Split('|');
+					var splitLine = line.Split(new [] {':'}, 2);
 					OptionsFromFile.Add(splitLine[0], splitLine[1]);
 				}
 			

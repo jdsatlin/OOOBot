@@ -7,7 +7,7 @@
 
 		}
 
-		public override bool GetStatus()
+		public override bool GetOooStatus()
 		{
 			return true; //user is OOO
 		}

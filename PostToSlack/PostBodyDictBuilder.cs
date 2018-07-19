@@ -22,19 +22,19 @@ namespace PostToSlack
 		}
 
 		
-		public static Dictionary<string, string> StringToDictionary(string line)
+		public Dictionary<string, string> StringToDictionary(string line)
 		{
 			char stringSplit = '&';
 			char keyValueSplit = '=';
 			return line.Split(new[] { stringSplit }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Split(new[] { keyValueSplit })).ToDictionary(x => x[0], y => y[1]);
 		}
 
-		public static string ReplaceLineBreaksWithBlank(string input)
+		public string ReplaceLineBreaksWithBlank(string input)
 		{
 			return Regex.Replace(input, @"\r\n?|\n", "");
 		}
 
-		public static void DictUrlDecoder(Dictionary<string, string> urlEncodedDictionary)
+		public void DictUrlDecoder(Dictionary<string, string> urlEncodedDictionary)
 		{
 			var dictCopy = new Dictionary<string, string>();
 			foreach (var entry in urlEncodedDictionary)

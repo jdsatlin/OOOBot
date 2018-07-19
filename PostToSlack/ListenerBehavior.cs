@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
+using System.Threading;
 
 namespace PostToSlack
 {
@@ -34,9 +37,13 @@ namespace PostToSlack
 
 			var user = new OooUser(messageDict.MessageDictionary["user_id"]);
 			user.SetUsername(messageDict.MessageDictionary["user_name"]);
-
+			if (messageDict.MessageDictionary["text"].Contains("return"))
+			{
+				scheduledMessage.RemoveScheduledUser(user);
+			}
 			scheduledMessage.AddScheduledUser(user);
 		}
+
 
 		public static void SetHttpListenerOptions(HttpListener listener, string bindingUrl)
 		{
